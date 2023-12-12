@@ -266,6 +266,7 @@ func (b *chromiumBrowser) pdf(ctx context.Context, logger *zap.Logger, url, outp
 		waitForExpressionBeforePrintActionFunc(logger, b.arguments.disableJavaScript, options.WaitForExpression),
 		waitDelayBeforePrintActionFunc(logger, b.arguments.disableJavaScript, options.WaitDelay),
 		printToPdfActionFunc(logger, outputPath, options),
+		closePageAfterConvert(logger, options.ClosePageAfterConvert),
 	}
 
 	err := chromedp.Run(taskCtx, tasks...)

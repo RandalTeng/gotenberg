@@ -166,6 +166,14 @@ type Options struct {
 	// If false, the content will be scaled to fit the paper size.
 	// Optional.
 	PreferCssPageSize bool
+
+	// ClosePageAfterConverted is a flag that check chromium should close context
+	// page or not.
+	// If true, the context page will exec an page.Close call as end, the error
+	// result will be logged.
+	// Remember: error in this call won't be return.
+	// Optional.
+	ClosePageAfterConvert bool
 }
 
 // DefaultOptions returns the default values for Options.
@@ -191,6 +199,7 @@ func DefaultOptions() Options {
 		HeaderTemplate:          "<html><head></head><body></body></html>",
 		FooterTemplate:          "<html><head></head><body></body></html>",
 		PreferCssPageSize:       false,
+		ClosePageAfterConvert:   false,
 	}
 }
 

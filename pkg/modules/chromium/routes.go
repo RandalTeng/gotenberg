@@ -39,6 +39,7 @@ func FormDataChromiumPdfOptions(ctx *api.Context) (*api.FormData, Options) {
 		pageRanges                                       string
 		headerTemplate, footerTemplate                   string
 		preferCssPageSize                                bool
+		closePageAterConvert                             bool
 	)
 
 	form := ctx.FormData().
@@ -88,7 +89,8 @@ func FormDataChromiumPdfOptions(ctx *api.Context) (*api.FormData, Options) {
 		String("nativePageRanges", &pageRanges, defaultOptions.PageRanges).
 		Content("header.html", &headerTemplate, defaultOptions.HeaderTemplate).
 		Content("footer.html", &footerTemplate, defaultOptions.FooterTemplate).
-		Bool("preferCssPageSize", &preferCssPageSize, defaultOptions.PreferCssPageSize)
+		Bool("preferCssPageSize", &preferCssPageSize, defaultOptions.PreferCssPageSize).
+		Bool("closePageAterConvert", &closePageAterConvert, defaultOptions.ClosePageAfterConvert)
 
 	options := Options{
 		FailOnConsoleExceptions: failOnConsoleExceptions,
@@ -111,6 +113,7 @@ func FormDataChromiumPdfOptions(ctx *api.Context) (*api.FormData, Options) {
 		HeaderTemplate:          headerTemplate,
 		FooterTemplate:          footerTemplate,
 		PreferCssPageSize:       preferCssPageSize,
+		ClosePageAfterConvert: closePageAterConvert,
 	}
 
 	return form, options
