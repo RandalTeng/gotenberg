@@ -263,8 +263,8 @@ func (b *chromiumBrowser) pdf(ctx context.Context, logger *zap.Logger, url, outp
 		hideDefaultWhiteBackgroundActionFunc(logger, options.OmitBackground, options.PrintBackground),
 		forceExactColorsActionFunc(),
 		emulateMediaTypeActionFunc(logger, options.EmulatedMediaType),
-		waitDelayBeforePrintActionFunc(logger, b.arguments.disableJavaScript, options.WaitDelay),
 		waitForExpressionBeforePrintActionFunc(logger, b.arguments.disableJavaScript, options.WaitForExpression),
+		waitDelayBeforePrintActionFunc(logger, b.arguments.disableJavaScript, options.WaitDelay),
 		printToPdfActionFunc(logger, outputPath, options),
 	}
 

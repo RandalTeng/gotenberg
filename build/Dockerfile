@@ -9,7 +9,9 @@ ARG GOLANG_VERSION
 FROM golang:$GOLANG_VERSION AS binary-stage
 
 ARG GOTENBERG_VERSION
-ENV CGO_ENABLED 0
+ENV CGO_ENABLED=0 \
+    GO111MODULE=on \
+    GOPROXY=https://goproxy.cn
 
 # Define the working directory outside of $GOPATH (we're using go modules).
 WORKDIR /home
