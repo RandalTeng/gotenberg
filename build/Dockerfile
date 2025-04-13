@@ -1,7 +1,7 @@
 # ARG instructions do not create additional layers. Instead, next layers will
 # concatenate them. Also, we have to repeat ARG instructions in each build
 # stage that uses them.
-ARG GOLANG_VERSION
+ARG GOLANG_VERSION=1.24
 
 # ----------------------------------------------
 # pdfcpu binary build stage
@@ -11,10 +11,10 @@ ARG GOLANG_VERSION
 
 FROM golang:$GOLANG_VERSION AS pdfcpu-binary-stage
 
-ARG PDFCPU_VERSION
+ARG PDFCPU_VERSION=v0.8.1
 ENV CGO_ENABLED=0 \
     # Change GoProxy repository to goproxy.cn, only do this if you are Chinese contributors.
-    #GOPROXY=https://goproxy.cn \
+    GOPROXY=https://goproxy.cn \
     ENV_FOO=BAR
 
 # Define the working directory outside of $GOPATH (we're using go modules).
@@ -36,10 +36,10 @@ RUN go build -o pdfcpu -ldflags "-s -w -X 'main.version=$PDFCPU_VERSION' -X 'git
 # ----------------------------------------------
 FROM golang:$GOLANG_VERSION AS gotenberg-binary-stage
 
-ARG GOTENBERG_VERSION
+ARG GOTENBERG_VERSION=snapshot
 ENV CGO_ENABLED=0 \
     # Change GoProxy repository to goproxy.cn, only do this if you are Chinese contributors.
-    #GOPROXY=https://goproxy.cn \
+    GOPROXY=https://goproxy.cn \
     ENV_FOO=BAR
 
 # Define the working directory outside of $GOPATH (we're using go modules).
@@ -62,11 +62,11 @@ RUN go build -o gotenberg -ldflags "-X 'github.com/gotenberg/gotenberg/v8/cmd.Ve
 # ----------------------------------------------
 FROM debian:12-slim
 
-ARG GOTENBERG_VERSION
-ARG GOTENBERG_USER_GID
-ARG GOTENBERG_USER_UID
-ARG NOTO_COLOR_EMOJI_VERSION
-ARG PDFTK_VERSION
+ARG GOTENBERG_VERSION=snapshot
+ARG GOTENBERG_USER_GID=1001
+ARG GOTENBERG_USER_UID=1001
+ARG NOTO_COLOR_EMOJI_VERSION=v2.047
+ARG PDFTK_VERSION=v3.3.3
 
 LABEL org.opencontainers.image.title="Gotenberg" \
       org.opencontainers.image.description="A containerized API for seamless PDF conversion." \
@@ -83,7 +83,7 @@ RUN \
     mkdir /home/gotenberg &&\
     chown gotenberg: /home/gotenberg && \
     # Change apt repository to mirrors.aliyun.com, only do this for Chinese contributors.
-    #sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources && \
+    sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources && \
     true
 
 RUN \
@@ -151,28 +151,28 @@ RUN \
     # Cleanup.
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN \
-    # Install either Google Chrome stable on amd64 architecture or
-    # Chromium on other architectures.
-    # See https://github.com/gotenberg/gotenberg/issues/328.
-    /bin/bash -c \
-    'set -e &&\
-    if [[ "$(dpkg --print-architecture)" == "amd64" ]]; then \
-      curl https://dl.google.com/linux/linux_signing_key.pub | apt-key add - &&\
-      echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list &&\
-      apt-get update -qq &&\
-      apt-get upgrade -yqq &&\
-      DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends --allow-unauthenticated google-chrome-stable &&\
-      mv /usr/bin/google-chrome-stable /usr/bin/chromium; \
-    else \
-      apt-get update -qq &&\
-      apt-get upgrade -yqq &&\
-      DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends chromium; \
-    fi' &&\
-    # Verify installation.
-    chromium --version &&\
-    # Cleanup.
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+#RUN \
+#    # Install either Google Chrome stable on amd64 architecture or
+#    # Chromium on other architectures.
+#    # See https://github.com/gotenberg/gotenberg/issues/328.
+#    /bin/bash -c \
+#    'set -e &&\
+#    if [[ "$(dpkg --print-architecture)" == "amd64" ]]; then \
+#      curl https://dl.google.com/linux/linux_signing_key.pub | apt-key add - &&\
+#      echo "deb http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list &&\
+#      apt-get update -qq &&\
+#      apt-get upgrade -yqq &&\
+#      DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends --allow-unauthenticated google-chrome-stable &&\
+#      mv /usr/bin/google-chrome-stable /usr/bin/chromium; \
+#    else \
+#      apt-get update -qq &&\
+#      apt-get upgrade -yqq &&\
+#      DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends chromium; \
+#    fi' &&\
+#    # Verify installation.
+#    chromium --version &&\
+#    # Cleanup.
+#    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN \
     # Install LibreOffice & unoconverter.
@@ -208,6 +208,21 @@ RUN \
     exiftool --version &&\
     # Cleanup.
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN \
+    # Install chromium by deb package\
+    set -e; \
+    sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources && \
+    apt update -qq && \
+    apt-get install -yqq --no-install-recommends \
+      ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 \
+      libcairo2 libcups2 libcurl4 libdbus-1-3 libexpat1 libgbm1 libglib2.0-0 libgtk-4-1 libnspr4 libnss3 \
+      libpango-1.0-0 libvulkan1 libx11-6 libxcb1 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxkbcommon0 \
+      libxrandr2 wget xdg-utils
+
+ADD ./resources/pkgs/chromium-browser-unstable_137.0.7119.0-1_amd64.deb /opt/chromium.deb
+
+RUN dpkg -i /opt/chromium.deb
 
 # Improve fonts subpixel hinting and smoothing.
 # Credits:
