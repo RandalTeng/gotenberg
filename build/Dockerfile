@@ -209,28 +209,29 @@ RUN \
     # Cleanup.
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# Copy custom resources to home directory.
+COPY resources/ /home/gotenberg/resources/
+
 RUN \
-    # Install chromium by deb package\
-    set -e; \
-    sed -i 's/deb.debian.org/mirrors.aliyun.com/g' /etc/apt/sources.list.d/debian.sources && \
+    # Install custom version chromium by deb package\
     apt update -qq && \
     apt-get install -yqq --no-install-recommends \
       ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0 libatspi2.0-0 \
       libcairo2 libcups2 libcurl4 libdbus-1-3 libexpat1 libgbm1 libglib2.0-0 libgtk-4-1 libnspr4 libnss3 \
       libpango-1.0-0 libvulkan1 libx11-6 libxcb1 libxcomposite1 libxdamage1 libxext6 libxfixes3 libxkbcommon0 \
-      libxrandr2 wget xdg-utils
-
-ADD ./resources/pkgs/chromium-browser-unstable_137.0.7119.0-1_amd64.deb /opt/chromium.deb
-
-RUN dpkg -i /opt/chromium.deb
+      libxrandr2 wget xdg-utils && \
+    mv /home/gotenberg/resources/pkgs/chromium-browser-unstable_137.0.7119.0-1_amd64.deb /opt/chromium.deb && \
+    dpkg -i /opt/chromium.deb && \
+    ln -sf /opt/chromium.org/chromium-unstable/chromium-browser-unstable /usr/bin/chromium && \
+    # verify if install is success.
+    chromium --version && \
+    rm -rf /opt/chromium.deb /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Improve fonts subpixel hinting and smoothing.
 # Credits:
 # https://github.com/arachnys/athenapdf/issues/69.
 # https://github.com/arachnys/athenapdf/commit/ba25a8d80a25d08d58865519c4cd8756dc9a336d.
 COPY build/fonts.conf /etc/fonts/conf.d/100-gotenberg.conf
-# Copy default stealth.min.js to home directory.
-COPY resources/ /home/gotenberg/resources/
 
 # Copy the pdfcpu binary from the pdfcpu-binary-stage.
 COPY --from=pdfcpu-binary-stage /home/pdfcpu /usr/bin/
